@@ -1,7 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
+
 #pragma warning disable CS1591
 
 namespace MediaBrowser.Model.Dlna
 {
+    [SuppressMessage("Design", "CA1027:Mark enums with FlagsAttribute", Justification = "False positive")]
     public enum ProfileConditionValue
     {
         AudioChannels = 0,

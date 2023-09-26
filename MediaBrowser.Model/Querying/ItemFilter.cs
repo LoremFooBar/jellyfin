@@ -1,8 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MediaBrowser.Model.Querying
 {
     /// <summary>
     /// Enum ItemFilter.
     /// </summary>
+    [SuppressMessage("Design", "CA1027:Mark enums with FlagsAttribute", Justification = "False positive")]
     public enum ItemFilter
     {
         /// <summary>
