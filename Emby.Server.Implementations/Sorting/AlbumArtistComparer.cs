@@ -38,7 +38,7 @@ namespace Emby.Server.Implementations.Sorting
         {
             var audio = x as IHasAlbumArtist;
 
-            return audio?.AlbumArtists.FirstOrDefault();
+            return audio?.AlbumArtists.Count > 0 ? audio.AlbumArtists[0] : default;
         }
     }
 }
