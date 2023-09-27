@@ -55,7 +55,8 @@ namespace Emby.Dlna.PlayTo
             var client = _httpClientFactory.CreateClient(NamedClient.Dlna);
             using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
-            await using MemoryStream ms = new MemoryStream();
+            MemoryStream ms = new MemoryStream();
+            await using var asyncDisposable = ms.ConfigureAwait(false);
             await response.Content.CopyToAsync(ms, cancellationToken).ConfigureAwait(false);
             ms.Position = 0;
             try
