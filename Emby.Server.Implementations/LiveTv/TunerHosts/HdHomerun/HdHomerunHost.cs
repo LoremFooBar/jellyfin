@@ -76,7 +76,8 @@ namespace Emby.Server.Implementations.LiveTv.TunerHosts.HdHomerun
             var model = await GetModelInfo(info, false, cancellationToken).ConfigureAwait(false);
 
             using var response = await _httpClientFactory.CreateClient(NamedClient.Default).GetAsync(model.LineupURL ?? model.BaseURL + "/lineup.json", HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
-            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+            var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+            await using var asyncDisposable = stream.ConfigureAwait(false);
             var lineup = await JsonSerializer.DeserializeAsync<List<Channels>>(stream, _jsonOptions, cancellationToken)
                 .ConfigureAwait(false) ?? new List<Channels>();
 
@@ -129,7 +130,8 @@ namespace Emby.Server.Implementations.LiveTv.TunerHosts.HdHomerun
                     .GetAsync(GetApiUrl(info) + "/discover.json", HttpCompletionOption.ResponseHeadersRead, cancellationToken)
                     .ConfigureAwait(false);
                 response.EnsureSuccessStatusCode();
-                await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+                var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+                await using var asyncDisposable = stream.ConfigureAwait(false);
                 var discoverResponse = await JsonSerializer.DeserializeAsync<DiscoverResponse>(stream, _jsonOptions, cancellationToken)
                     .ConfigureAwait(false);
 
@@ -175,7 +177,8 @@ namespace Emby.Server.Implementations.LiveTv.TunerHosts.HdHomerun
             using var response = await _httpClientFactory.CreateClient(NamedClient.Default)
                 .GetAsync(string.Format(CultureInfo.InvariantCulture, "{0}/tuners.html", GetApiUrl(info)), HttpCompletionOption.ResponseHeadersRead, cancellationToken)
                 .ConfigureAwait(false);
-            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+            var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+            await using var asyncDisposable = stream.ConfigureAwait(false);
             using var sr = new StreamReader(stream, System.Text.Encoding.UTF8);
             var tuners = new List<LiveTvTunerInfo>();
             await foreach (var line in sr.ReadAllLinesAsync().ConfigureAwait(false))

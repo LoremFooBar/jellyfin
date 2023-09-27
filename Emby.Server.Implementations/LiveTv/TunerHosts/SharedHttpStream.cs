@@ -83,8 +83,10 @@ namespace Emby.Server.Implementations.LiveTv.TunerHosts
                         Logger.LogInformation("Beginning {StreamType} stream to {FilePath}", GetType().Name, TempFilePath);
                         using (response)
                         {
-                            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-                            await using var fileStream = new FileStream(TempFilePath, FileMode.Create, FileAccess.Write, FileShare.Read, IODefaults.FileStreamBufferSize, FileOptions.Asynchronous);
+                            var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+                            await using var asyncDisposableStream = stream.ConfigureAwait(false);
+                            var fileStream = new FileStream(TempFilePath, FileMode.Create, FileAccess.Write, FileShare.Read, IODefaults.FileStreamBufferSize, FileOptions.Asynchronous);
+                            await using var asyncDisposableFileStream = fileStream.ConfigureAwait(false);
                             await StreamHelper.CopyToAsync(
                                 stream,
                                 fileStream,

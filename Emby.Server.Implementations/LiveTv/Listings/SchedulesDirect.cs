@@ -106,7 +106,8 @@ namespace Emby.Server.Implementations.LiveTv.Listings
             options.Content = JsonContent.Create(requestList, options: _jsonOptions);
             options.Headers.TryAddWithoutValidation("token", token);
             using var response = await Send(options, true, info, cancellationToken).ConfigureAwait(false);
-            await using var responseStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+            var responseStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+            await using var asyncDisposableResponseStream = responseStream.ConfigureAwait(false);
             var dailySchedules = await JsonSerializer.DeserializeAsync<IReadOnlyList<DayDto>>(responseStream, _jsonOptions, cancellationToken).ConfigureAwait(false);
             if (dailySchedules is null)
             {
@@ -122,7 +123,8 @@ namespace Emby.Server.Implementations.LiveTv.Listings
             programRequestOptions.Content = JsonContent.Create(programIds, options: _jsonOptions);
 
             using var innerResponse = await Send(programRequestOptions, true, info, cancellationToken).ConfigureAwait(false);
-            await using var innerResponseStream = await innerResponse.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+            var innerResponseStream = await innerResponse.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+            await using var asyncDisposableInnerResponseStream = innerResponseStream.ConfigureAwait(false);
             var programDetails = await JsonSerializer.DeserializeAsync<IReadOnlyList<ProgramDetailsDto>>(innerResponseStream, _jsonOptions, cancellationToken).ConfigureAwait(false);
             if (programDetails is null)
             {
@@ -482,7 +484,8 @@ namespace Emby.Server.Implementations.LiveTv.Listings
             try
             {
                 using var innerResponse2 = await Send(message, true, info, cancellationToken).ConfigureAwait(false);
-                await using var response = await innerResponse2.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+                var response = await innerResponse2.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+                await using var asyncDisposable = response.ConfigureAwait(false);
                 return await JsonSerializer.DeserializeAsync<IReadOnlyList<ShowImagesDto>>(response, _jsonOptions, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
@@ -510,7 +513,8 @@ namespace Emby.Server.Implementations.LiveTv.Listings
             try
             {
                 using var httpResponse = await Send(options, false, info, cancellationToken).ConfigureAwait(false);
-                await using var response = await httpResponse.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+                var response = await httpResponse.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+                await using var asyncDisposable = response.ConfigureAwait(false);
 
                 var root = await JsonSerializer.DeserializeAsync<IReadOnlyList<HeadendsDto>>(response, _jsonOptions, cancellationToken).ConfigureAwait(false);
 
@@ -649,7 +653,8 @@ namespace Emby.Server.Implementations.LiveTv.Listings
 
             using var response = await Send(options, false, null, cancellationToken).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
-            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+            var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+            await using var asyncDisposable = stream.ConfigureAwait(false);
             var root = await JsonSerializer.DeserializeAsync<TokenDto>(stream, _jsonOptions, cancellationToken).ConfigureAwait(false);
             if (string.Equals(root?.Message, "OK", StringComparison.Ordinal))
             {
@@ -691,7 +696,8 @@ namespace Emby.Server.Implementations.LiveTv.Listings
             {
                 using var httpResponse = await Send(options, false, null, cancellationToken).ConfigureAwait(false);
                 httpResponse.EnsureSuccessStatusCode();
-                await using var stream = await httpResponse.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+                var stream = await httpResponse.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+                await using var asyncDisposable = stream.ConfigureAwait(false);
                 using var response = httpResponse.Content;
                 var root = await JsonSerializer.DeserializeAsync<LineupsDto>(stream, _jsonOptions, cancellationToken).ConfigureAwait(false);
 
@@ -748,7 +754,8 @@ namespace Emby.Server.Implementations.LiveTv.Listings
             options.Headers.TryAddWithoutValidation("token", token);
 
             using var httpResponse = await Send(options, true, info, cancellationToken).ConfigureAwait(false);
-            await using var stream = await httpResponse.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+            var stream = await httpResponse.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+            await using var asyncDisposable = stream.ConfigureAwait(false);
             var root = await JsonSerializer.DeserializeAsync<ChannelDto>(stream, _jsonOptions, cancellationToken).ConfigureAwait(false);
             if (root is null)
             {

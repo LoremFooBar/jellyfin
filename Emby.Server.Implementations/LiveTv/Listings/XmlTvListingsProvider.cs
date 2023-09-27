@@ -84,19 +84,22 @@ namespace Emby.Server.Implementations.LiveTv.Listings
                 _logger.LogInformation("Downloading xmltv listings from {Path}", info.Path);
 
                 using var response = await _httpClientFactory.CreateClient(NamedClient.Default).GetAsync(info.Path, cancellationToken).ConfigureAwait(false);
-                await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+                var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+                await using var asyncDisposable = stream.ConfigureAwait(false);
                 return await UnzipIfNeededAndCopy(info.Path, stream, cacheFile, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                await using var stream = AsyncFile.OpenRead(info.Path);
+                var stream = AsyncFile.OpenRead(info.Path);
+                await using var asyncDisposable = stream.ConfigureAwait(false);
                 return await UnzipIfNeededAndCopy(info.Path, stream, cacheFile, cancellationToken).ConfigureAwait(false);
             }
         }
 
         private async Task<string> UnzipIfNeededAndCopy(string originalUrl, Stream stream, string file, CancellationToken cancellationToken)
         {
-            await using var fileStream = new FileStream(file, FileMode.CreateNew, FileAccess.Write, FileShare.None, IODefaults.FileStreamBufferSize, FileOptions.Asynchronous);
+            var fileStream = new FileStream(file, FileMode.CreateNew, FileAccess.Write, FileShare.None, IODefaults.FileStreamBufferSize, FileOptions.Asynchronous);
+            await using var asyncDisposable = fileStream.ConfigureAwait(false);
 
             if (Path.GetExtension(originalUrl.AsSpan().LeftPart('?')).Equals(".gz", StringComparison.OrdinalIgnoreCase))
             {

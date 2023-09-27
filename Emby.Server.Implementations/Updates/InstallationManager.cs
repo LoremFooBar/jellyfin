@@ -516,7 +516,8 @@ namespace Emby.Server.Implementations.Updates
             using var response = await _httpClientFactory.CreateClient(NamedClient.Default)
                 .GetAsync(new Uri(package.SourceUrl), cancellationToken).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
-            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+            var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+            await using var asyncDisposable = stream.ConfigureAwait(false);
 
             // CA5351: Do Not Use Broken Cryptographic Algorithms
 #pragma warning disable CA5351
@@ -556,7 +557,7 @@ namespace Emby.Server.Implementations.Updates
             reader.ExtractToDirectory(targetDir, true);
 
             // Ensure we create one or populate existing ones with missing data.
-            await _pluginManager.PopulateManifest(package.PackageInfo, package.Version, targetDir, status);
+            await _pluginManager.PopulateManifest(package.PackageInfo, package.Version, targetDir, status).ConfigureAwait(false);
 
             _pluginManager.ImportPluginFrom(targetDir);
         }

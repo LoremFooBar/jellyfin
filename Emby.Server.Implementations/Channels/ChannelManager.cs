@@ -371,7 +371,8 @@ namespace Emby.Server.Implementations.Channels
 
             Directory.CreateDirectory(Path.GetDirectoryName(path));
 
-            await using FileStream createStream = File.Create(path);
+            FileStream createStream = File.Create(path);
+            await using var asyncDisposable = createStream.ConfigureAwait(false);
             await JsonSerializer.SerializeAsync(createStream, mediaSources, _jsonOptions).ConfigureAwait(false);
         }
 
@@ -809,7 +810,8 @@ namespace Emby.Server.Implementations.Channels
             {
                 if (_fileSystem.GetLastWriteTimeUtc(cachePath).Add(cacheLength) > DateTime.UtcNow)
                 {
-                    await using FileStream jsonStream = AsyncFile.OpenRead(cachePath);
+                    FileStream jsonStream = AsyncFile.OpenRead(cachePath);
+                    await using var asyncDisposable = jsonStream.ConfigureAwait(false);
                     var cachedResult = await JsonSerializer.DeserializeAsync<ChannelItemResult>(jsonStream, _jsonOptions, cancellationToken).ConfigureAwait(false);
                     if (cachedResult is not null)
                     {
@@ -832,7 +834,8 @@ namespace Emby.Server.Implementations.Channels
                 {
                     if (_fileSystem.GetLastWriteTimeUtc(cachePath).Add(cacheLength) > DateTime.UtcNow)
                     {
-                        await using FileStream jsonStream = AsyncFile.OpenRead(cachePath);
+                        FileStream jsonStream = AsyncFile.OpenRead(cachePath);
+                        await using var asyncDisposable = jsonStream.ConfigureAwait(false);
                         var cachedResult = await JsonSerializer.DeserializeAsync<ChannelItemResult>(jsonStream, _jsonOptions, cancellationToken).ConfigureAwait(false);
                         if (cachedResult is not null)
                         {
@@ -864,7 +867,7 @@ namespace Emby.Server.Implementations.Channels
                     throw new InvalidOperationException("Channel returned a null result from GetChannelItems");
                 }
 
-                await CacheResponse(result, cachePath);
+                await CacheResponse(result, cachePath).ConfigureAwait(false);
 
                 return result;
             }
@@ -880,7 +883,8 @@ namespace Emby.Server.Implementations.Channels
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
 
-                await using FileStream createStream = File.Create(path);
+                FileStream createStream = File.Create(path);
+                await using var asyncDisposable = createStream.ConfigureAwait(false);
                 await JsonSerializer.SerializeAsync(createStream, result, _jsonOptions).ConfigureAwait(false);
             }
             catch (Exception ex)

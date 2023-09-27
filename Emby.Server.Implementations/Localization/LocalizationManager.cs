@@ -71,8 +71,9 @@ namespace Emby.Server.Implementations.Localization
                 string countryCode = resource.Substring(RatingsPath.Length, 2);
                 var dict = new Dictionary<string, ParentalRating>(StringComparer.OrdinalIgnoreCase);
 
-                await using var stream = _assembly.GetManifestResourceStream(resource);
-                using var reader = new StreamReader(stream!); // shouldn't be null here, we just got the resource path from Assembly.GetManifestResourceNames()
+                var stream = _assembly.GetManifestResourceStream(resource);
+                await using var asyncDisposable = stream!.ConfigureAwait(false); // shouldn't be null here, we just got the resource path from Assembly.GetManifestResourceNames()
+                using var reader = new StreamReader(stream!);
                 await foreach (var line in reader.ReadAllLinesAsync().ConfigureAwait(false))
                 {
                     if (string.IsNullOrWhiteSpace(line))
@@ -110,8 +111,9 @@ namespace Emby.Server.Implementations.Localization
         {
             List<CultureDto> list = new List<CultureDto>();
 
-            await using var stream = _assembly.GetManifestResourceStream(CulturesPath)
-                ?? throw new InvalidOperationException($"Invalid resource path: '{CulturesPath}'");
+            var stream = _assembly.GetManifestResourceStream(CulturesPath)
+                         ?? throw new InvalidOperationException($"Invalid resource path: '{CulturesPath}'");
+            await using var asyncDisposable = stream.ConfigureAwait(false);
             using var reader = new StreamReader(stream);
             await foreach (var line in reader.ReadAllLinesAsync().ConfigureAwait(false))
             {
@@ -386,13 +388,15 @@ namespace Emby.Server.Implementations.Localization
 
         private async Task CopyInto(IDictionary<string, string> dictionary, string resourcePath)
         {
-            await using var stream = _assembly.GetManifestResourceStream(resourcePath);
+            var stream = _assembly.GetManifestResourceStream(resourcePath);
             // If a Culture doesn't have a translation the stream will be null and it defaults to en-us further up the chain
             if (stream is null)
             {
                 _logger.LogError("Missing translation/culture resource: {ResourcePath}", resourcePath);
                 return;
             }
+
+            await using var asyncDisposable = stream.ConfigureAwait(false);
 
             var dict = await JsonSerializer.DeserializeAsync<Dictionary<string, string>>(stream, _jsonOptions).ConfigureAwait(false);
             if (dict is null)
