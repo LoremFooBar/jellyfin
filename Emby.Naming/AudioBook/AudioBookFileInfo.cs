@@ -1,4 +1,5 @@
 using System;
+using System.Numerics;
 
 namespace Emby.Naming.AudioBook
 {
@@ -23,28 +24,69 @@ namespace Emby.Naming.AudioBook
         }
 
         /// <summary>
-        /// Gets or sets the path.
+        /// Gets the path.
         /// </summary>
         /// <value>The path.</value>
-        public string Path { get; set; }
+        public string Path { get; }
 
         /// <summary>
-        /// Gets or sets the container.
+        /// Gets the container.
         /// </summary>
         /// <value>The container.</value>
-        public string Container { get; set; }
+        public string Container { get; }
 
         /// <summary>
-        /// Gets or sets the part number.
+        /// Gets the part number.
         /// </summary>
         /// <value>The part number.</value>
-        public int? PartNumber { get; set; }
+        public int? PartNumber { get; }
 
         /// <summary>
-        /// Gets or sets the chapter number.
+        /// Gets the chapter number.
         /// </summary>
         /// <value>The chapter number.</value>
-        public int? ChapterNumber { get; set; }
+        public int? ChapterNumber { get; }
+
+        /// <inheritdoc cref="IEqualityOperators{TSelf,TOther,TResult}.op_Equality(TSelf, TOther)" />
+        public static bool operator ==(AudioBookFileInfo left, AudioBookFileInfo right)
+        {
+            if (ReferenceEquals(left, null))
+            {
+                return ReferenceEquals(right, null);
+            }
+
+            return left.Equals(right);
+        }
+
+        /// <inheritdoc cref="IEqualityOperators{TSelf,TOther,TResult}.op_Inequality(TSelf, TOther)" />
+        public static bool operator !=(AudioBookFileInfo left, AudioBookFileInfo right)
+        {
+            return !(left == right);
+        }
+
+        /// <inheritdoc cref="IComparisonOperators{TSelf,TOther,TResult}.op_LessThan(TSelf, TOther)" />
+        public static bool operator <(AudioBookFileInfo left, AudioBookFileInfo right)
+        {
+            return ReferenceEquals(left, null) ? !ReferenceEquals(right, null) : left.CompareTo(right) < 0;
+        }
+
+        /// <inheritdoc cref="IComparisonOperators{TSelf,TOther,TResult}.op_LessThanOrEqual(TSelf, TOther)" />
+        public static bool operator <=(AudioBookFileInfo left, AudioBookFileInfo right)
+        {
+            return ReferenceEquals(left, null) || left.CompareTo(right) <= 0;
+        }
+
+        /// <inheritdoc cref="IComparisonOperators{TSelf,TOther,TResult}.op_GreaterThan(TSelf, TOther)" />
+        public static bool operator >(AudioBookFileInfo left, AudioBookFileInfo right)
+        {
+            return !ReferenceEquals(left, null) && left.CompareTo(right) > 0;
+        }
+
+        /// <inheritdoc cref="IComparisonOperators{TSelf,TOther,TResult}.op_GreaterThanOrEqual(TSelf, TOther)" />
+        public static bool operator >=(AudioBookFileInfo left, AudioBookFileInfo right)
+        {
+            return ReferenceEquals(left, null) ? ReferenceEquals(right, null) : left.CompareTo(right) >= 0;
+        }
 
         /// <inheritdoc />
         public int CompareTo(AudioBookFileInfo? other)
@@ -73,5 +115,29 @@ namespace Emby.Naming.AudioBook
 
             return string.Compare(Path, other.Path, StringComparison.Ordinal);
         }
+
+        /// <summary>
+        /// Determine whether the specified object equals to the current object.
+        /// </summary>
+        /// <param name="other">the object to compare to.</param>
+        /// <returns>true if the the specified object is equal to the current object; otherwise false.</returns>
+        private bool Equals(AudioBookFileInfo? other)
+        {
+            return CompareTo(other) == 0;
+        }
+
+        /// <inheritdoc />
+        public override bool Equals(object? obj)
+        {
+            if (obj is not AudioBookFileInfo audioBookFileInfo)
+            {
+                return false;
+            }
+
+            return CompareTo(audioBookFileInfo) == 0;
+        }
+
+        /// <inheritdoc />
+        public override int GetHashCode() => HashCode.Combine(Path, Container, PartNumber, ChapterNumber);
     }
 }
